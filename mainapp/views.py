@@ -16,7 +16,7 @@ from mainapp.serializers import MenuSerializer, CookQuantitySerializer, MyUserSe
 
 
 #
-# class MenuList(APIView):
+# class MenuList(APIView)::wq
 #     def get(self,request,format=None):
 #         menu = Menu.objects.all()
 #         serializer = MenuSerializer(menu, many=True)
