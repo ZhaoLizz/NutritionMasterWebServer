@@ -67,6 +67,7 @@ def parse_menu():
     done_move_dir = data_set_dir + 'done\\'
 
     csv_list = os.listdir(dir)
+    menu_count = 0
 
     for menu_file in csv_list:
         print('log menu_file: ', menu_file)
@@ -76,7 +77,9 @@ def parse_menu():
         for i in range(table_size):
             name = table['菜名'][i]
 
-            print('log ', name)
+            menu_count += 1
+            print('log ', menu_count, name)
+
             # calorie = table['卡路里'][i]
             calorie = -1
             flavor = table['口味'][i]
@@ -89,24 +92,21 @@ def parse_menu():
 
             menu = Menu(name=name, calorie=calorie, flavor=flavor, technology=technology,
                         practice=practice, image_url=image_url)
-            menu.save()
+            try:
+                menu.save()
+            except Exception as e:
+                print(menu.name, e)
 
             # 处理菜谱和食材,做菜之间的关系
             material_dict = get_material_and_quantity_dict(material_str)
             for material_name, quantity_str in material_dict.items():  # 遍历每个食材
-                # quantity_str有可能是500克,也有可能是适量
-                # if quantity_str == '适量':
-                #     quantity = 0
-                # else:
-                #     quantity = int(quantity_str[:-1])
                 food_material = FoodMaterial(material_name=material_name)
                 food_material.save()
+                cook_quantity = CookQuantity(menu=menu, material=food_material, quantity=quantity_str)
                 try:
-                    cook_quantity = CookQuantity(menu=menu, material=food_material, quantity=quantity_str)
                     cook_quantity.save()
-                except:
+                except Exception as e:
                     pass
-                # CookQuantity.objects.create(menu=menu, material=food_material, quantity=quantity)
 
             # 处理菜谱和功能分类之间的关系
             classification_list = get_classification_list(classification_str)
@@ -166,3 +166,129 @@ def create_occupation():
             '电力工程师', '化验员', '机长', '空姐', '画师', '动漫设计', '白领', '前台', '学生']
     for str in list:
         Occupation.objects.create(occupation_name=str)
+
+
+def test_read_menu_file(filename):
+    file_path = data_set_dir + 'menuset\\' + filename
+    table = pd.read_csv(file_path, encoding='gbk', engine='python')
+    table_size = len(table)
+    done_move_dir = data_set_dir + 'done\\'
+
+    menu_count = 0
+    for i in range(table_size):
+        name = table['菜名'][i]
+
+        # calorie = table['卡路里'][i]
+        calorie = -1
+        flavor = table['口味'][i]
+        technology = table['主要工艺'][i]
+        practice = table['做法'][i]
+        # image_url = table['图片url'][i]
+        image_url = ''
+        material_str = table['食材'][i]
+        classification_str = table['分类'][i]
+
+        menu = Menu(name=name, calorie=calorie, flavor=flavor, technology=technology,
+                    practice=practice, image_url=image_url)
+        try:
+            menu.save()
+            menu_count += 1
+            print('log ', menu_count, name)
+        except Exception as e:
+            print(menu.name, e)
+
+        # 处理菜谱和食材,做菜之间的关系
+        material_dict = get_material_and_quantity_dict(material_str)
+        for material_name, quantity_str in material_dict.items():  # 遍历每个食材
+            food_material = FoodMaterial(material_name=material_name)
+            food_material.save()
+            cook_quantity = CookQuantity(menu=menu, material=food_material, quantity=quantity_str)
+            try:
+                cook_quantity.save()
+            except Exception as e:
+                pass
+
+        # 处理菜谱和功能分类之间的关系
+        classification_list = get_classification_list(classification_str)
+        for class_name in classification_list:
+            menu_classification = MenuClassification(classification=class_name)
+            menu_classification.save()
+            menu_classification.menu_effect.add(menu)
+
+        # 把读完后的文件放到另一个文件夹
+        if (i + 1 == table_size):
+            print('done ' + file_path + " move to " + done_move_dir)
+            shutil.move(file_path, done_move_dir)
+
+
+def parse_menu_calorie_and_url():
+    """
+    收尾工作,读取一下url和卡路里
+    """
+    data_set_dir = 'C:\\Users\\Administrator\\Documents\\Study\\foodsetfinal\\'
+    dir = data_set_dir + 'menu'
+    done_move_dir = data_set_dir + 'done\\'
+
+    csv_list = os.listdir(dir)
+    menu_count = 0
+
+    for menu_file in csv_list:
+        print('log menu_file: ', menu_file)
+        file_path = dir + '\\' + menu_file
+        table = pd.read_csv(file_path, encoding='gbk', engine='python')
+        table.fillna(0, inplace=True)
+        table_size = len(table)
+        for i in range(table_size):
+            name = table['菜名'][i]
+            menu_count += 1
+            print('log ', menu_count, name)
+            calorie = table['卡路里'][i]
+            image_url = table['图片url'][i]
+            menu = Menu.objects.filter(name=name)
+            # 判断是不是没存这个菜
+            if (menu.count() == 0):
+                name = table['菜名'][i]
+                calorie = table['卡路里'][i]
+                flavor = table['口味'][i]
+                technology = table['主要工艺'][i]
+                practice = table['做法'][i]
+                image_url = table['图片url'][i]
+                material_str = table['食材'][i]
+                classification_str = table['分类'][i]
+                menu = Menu(name=name, calorie=calorie, flavor=flavor, technology=technology,
+                            practice=practice, image_url=image_url)
+                try:
+                    menu.save()
+                except Exception as e:
+                    print(menu.name, e)
+                # 处理菜谱和食材,做菜之间的关系
+                material_dict = get_material_and_quantity_dict(material_str)
+                for material_name, quantity_str in material_dict.items():  # 遍历每个食材
+                    food_material = FoodMaterial(material_name=material_name)
+                    food_material.save()
+                    cook_quantity = CookQuantity(menu=menu, material=food_material, quantity=quantity_str)
+                    try:
+                        cook_quantity.save()
+                    except Exception as e:
+                        pass
+                # 处理菜谱和功能分类之间的关系
+                classification_list = get_classification_list(classification_str)
+                for class_name in classification_list:
+                    menu_classification = MenuClassification(classification=class_name)
+                    menu_classification.save()
+                    menu_classification.menu_effect.add(menu)
+            else:
+                menu = menu[0]
+                if calorie == '海鲜焗饭':
+                    calorie = -1
+                menu.calorie = int(calorie)
+                menu.image_url = image_url
+                try:
+                    menu.save()
+                except Exception as e:
+                    print(menu.name, e)
+
+            # 把读完后的文件放到另一个文件夹
+            if (i + 1 == table_size):
+                print('done ' + file_path + " move to " + done_move_dir)
+                shutil.move(file_path, done_move_dir)

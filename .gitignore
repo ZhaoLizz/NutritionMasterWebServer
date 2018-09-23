@@ -81,5 +81,7 @@ fabric.properties
 db.sqlite3
 fabfile.py
 fabfile
+NutritionMasterWebServer/__init__.py
+media/foodsetfinal/*
 
 # End of https://www.gitignore.io/api/pycharm
