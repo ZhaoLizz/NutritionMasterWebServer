@@ -12,7 +12,7 @@ from rest_framework.views import APIView
 from mainapp.forms import UploadFileForm
 from mainapp.models import Menu, CookQuantity, FoodMaterial, MyUser, MenuClassification, Occupation, Physique
 from mainapp.serializers import MenuSerializer, CookQuantitySerializer, MyUserSerializer, MenuClassificationSerializer, \
-    OccupationSerializer, PhysiqueSerializer
+    OccupationSerializer, PhysiqueSerializer, FoodMaterialSerializer, MenuListSerializer
 
 
 #
@@ -62,6 +62,7 @@ class MenuViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = MenuSerializer
 
 
+
 # class CookQuantityDetail(APIView):
 #     def get(self, request, name):
 #         menu = Menu.objects.get(name=name)
@@ -96,8 +97,8 @@ class CookQuantityViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class FoodMaterialViewSet(viewsets.ReadOnlyModelViewSet):
-
-
+    queryset = FoodMaterial.objects.all()
+    serializer_class = FoodMaterialSerializer
 
     def retrieve(self, request, pk=None, *args, **kwargs):
         """
@@ -139,7 +140,6 @@ class PhysiqueViewSet(viewsets.ReadOnlyModelViewSet):
     lookup_field = 'physical_name'
 
 
-
 @csrf_exempt
 def upload_file(request):
     if request.method == 'POST':
@@ -149,9 +149,8 @@ def upload_file(request):
         #     return HttpResponse('save file ')
         file = request.FILES['file']
         fs = FileSystemStorage()
-        filename = fs.save(file.name,file)
+        filename = fs.save(file.name, file)
         uploaded_file_url = fs.url(filename)
         return HttpResponse(uploaded_file_url)
 
     return HttpResponse('test')
-

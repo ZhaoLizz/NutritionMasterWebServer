@@ -31,7 +31,8 @@ class MenuSerializer(serializers.ModelSerializer):
     class Meta:
         model = Menu
         fields = (
-        'flavor', 'calorie', 'name', 'technology', 'image_url', 'cook_quantity', 'practice', 'menuclassification_set')
+            'flavor', 'calorie', 'name', 'technology', 'image_url', 'cook_quantity', 'practice',
+            'menuclassification_set')
         # fields = '__all__'
 
 
@@ -49,7 +50,7 @@ class OccupationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Occupation
-        fields = ('occupation_name','menuclassification_set')
+        fields = ('occupation_name', 'menuclassification_set')
 
 
 class PhysiqueSerializer(serializers.ModelSerializer):
@@ -60,7 +61,7 @@ class PhysiqueSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Physique
-        fields = ('physical_name','cure_material')
+        fields = ('physical_name', 'cure_material')
 
 
 class MyUserSerializer(serializers.ModelSerializer):
@@ -79,4 +80,3 @@ class MyUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = MyUser
         fields = '__all__'
-
