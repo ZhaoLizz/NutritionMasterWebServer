@@ -3,7 +3,7 @@ from django.http import HttpResponse, Http404
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework import status, mixins, generics, viewsets
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, action
 from rest_framework.parsers import JSONParser
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
@@ -12,11 +12,11 @@ from rest_framework.views import APIView
 from mainapp.forms import UploadFileForm
 from mainapp.models import Menu, CookQuantity, FoodMaterial, MyUser, MenuClassification, Occupation, Physique
 from mainapp.serializers import MenuSerializer, CookQuantitySerializer, MyUserSerializer, MenuClassificationSerializer, \
-    OccupationSerializer, PhysiqueSerializer, FoodMaterialSerializer, MenuListSerializer
+    OccupationSerializer, PhysiqueSerializer, FoodMaterialSerializer
 
 
 #
-# class MenuList(APIView)::wq
+# class MenuList(APIView)
 #     def get(self,request,format=None):
 #         menu = Menu.objects.all()
 #         serializer = MenuSerializer(menu, many=True)
@@ -60,6 +60,16 @@ class MenuViewSet(viewsets.ReadOnlyModelViewSet):
     """
     queryset = Menu.objects.all()
     serializer_class = MenuSerializer
+
+    @action(detail=False,methods=['get'])
+    def get_random_menus(self,request):
+        print('log',request)
+        print('log',request.data)
+        print('log',request.GET)
+        return HttpResponse("test")
+
+
+
 
 
 
