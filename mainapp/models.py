@@ -3,21 +3,56 @@ from django.db import models
 from django.contrib.auth.models import User, AbstractUser
 
 
-class Occupation(models.Model):
+
+class Element(models.Model):
     """
-    特殊职业
+    营养元素,id为主码
     """
-    occupation_name = models.CharField(max_length=16, unique=True, primary_key=True)
+    calorie = models.FloatField(default=0)
+    carbohydrate = models.FloatField(default=0)
+    fat = models.FloatField(default=0)
+    protein = models.FloatField(default=0)
+    cellulose = models.FloatField(default=0)
+    vitaminA = models.FloatField(default=0)
+    vitaminB1 = models.FloatField(default=0)
+    vitaminB2 = models.FloatField(default=0)
+    vitaminB6 = models.FloatField(default=0)
+    vitaminC = models.FloatField(default=0)
+    vitaminE = models.FloatField(default=0)
+    carotene = models.FloatField(default=0)
+    cholesterol = models.FloatField(default=0)
+    Mg = models.FloatField(default=0)
+    Ca = models.FloatField(default=0)
+    Fe = models.FloatField(default=0)
+    Zn = models.FloatField(default=0)
+    Cu = models.FloatField(default=0)
+    Mn = models.FloatField(default=0)
+    K = models.FloatField(default=0)
+    P = models.FloatField(default=0)
+    Na = models.FloatField(default=0)
+    Se = models.FloatField(default=0)
+    test = models.FloatField(default=0)
 
     def __str__(self):
-        return self.occupation_name
+        return self.id + self.objects
 
+
+
+class Occupation(models.Model):
+    """
+    职业
+    """
+    occupation_name = models.CharField(max_length=16, unique=True, primary_key=True)
+    elements =  models.OneToOneField(Element, on_delete=models.CASCADE,null=True,blank=True)
+    def __str__(self):
+        return self.occupation_name
 
 class FoodMaterial(models.Model):
     """
     食材
     """
     material_name = models.CharField(max_length=64, primary_key=True)
+
     # material_effect = models.ManyToManyField(Physique, through='MaterialEffect')  # 食材_效果_体质
 
     def __str__(self):
@@ -59,15 +94,18 @@ class Physique(models.Model):
     体质
     """
     physical_name = models.CharField(max_length=64, primary_key=True)
-    # physical_feature = models.TextField(null=True)
-    # exercise_method = models.TextField(null=True)
     cure_material = models.ManyToManyField(FoodMaterial, blank=True, null=True)
+    elements =  models.OneToOneField(Element, on_delete=models.CASCADE,null=True,blank=True)
 
     def __str__(self):
         return self.physical_name
 
 
-#
+class Illness(models.Model):
+    menu_classification = models.OneToOneField(MenuClassification,primary_key=True,on_delete=models.CASCADE)
+    elements = models.OneToOneField(Element, on_delete=models.CASCADE, null=True,blank=True)
+
+
 # class MaterialEffect(models.Model):
 #     """
 #     食材效果

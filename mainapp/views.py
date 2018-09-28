@@ -55,23 +55,24 @@ from mainapp.serializers import MenuSerializer, CookQuantitySerializer, MyUserSe
 
 class MenuViewSet(viewsets.ReadOnlyModelViewSet):
     """
-        传入的pk值为菜名,查询菜的信息和做菜方法
+    传入的pk值为菜名,查询菜的信息和做菜方法
     ReadOnlyViewSet提供list和detail
     """
     queryset = Menu.objects.all()
     serializer_class = MenuSerializer
 
-    @action(detail=False,methods=['get'])
-    def get_random_menus(self,request):
-        print('log',request)
-        print('log',request.data)
-        print('log',request.GET)
-        return HttpResponse("test")
-
-
-
-
-
+    @action(detail=False, methods=['get'])
+    def get_random_menus(self, request):
+        import random
+        import numpy as np
+        size = self.queryset.count()
+        count = request.GET['count']
+        count = int(count)
+        # sample : 从一个list中随机挑选n个数组成list
+        random_index = random.sample(range(size),count)
+        random_menus = np.array(self.queryset)[random_index]
+        serializer = MenuSerializer(random_menus,many=True)
+        return Response(serializer.data)
 
 # class CookQuantityDetail(APIView):
 #     def get(self, request, name):
