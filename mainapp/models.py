@@ -31,7 +31,6 @@ class Element(models.Model):
     P = models.FloatField(default=0)
     Na = models.FloatField(default=0)
     Se = models.FloatField(default=0)
-    test = models.FloatField(default=0)
 
     def __str__(self):
         return self.id + self.objects
