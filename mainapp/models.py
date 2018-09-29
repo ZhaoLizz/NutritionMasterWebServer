@@ -3,7 +3,6 @@ from django.db import models
 from django.contrib.auth.models import User, AbstractUser
 
 
-
 class Element(models.Model):
     """
     营养元素,id为主码
@@ -31,10 +30,61 @@ class Element(models.Model):
     P = models.FloatField(default=0)
     Na = models.FloatField(default=0)
     Se = models.FloatField(default=0)
+    niacin = models.FloatField(default=0)
+    thiamine = models.FloatField(default=0)
 
-    def __str__(self):
-        return self.id + self.objects
-
+    def __add__(self, other):
+        calorie = (self.calorie + other.calorie)
+        carbohydrate = self.carbohydrate + other.carbohydrate
+        fat = self.fat + other.fat
+        protein = self.protein + other.protein
+        cellulose = self.cellulose + other.cellulose
+        vitaminA = self.vitaminA + other.vitaminA
+        vitaminB1 = self.vitaminB1 + other.vitaminB1
+        vitaminB2 = self.vitaminB2 + other.vitaminB2
+        vitaminB6 = self.vitaminB6 + other.vitaminB6
+        vitaminC = self.vitaminC + other.vitaminC
+        vitaminE = self.vitaminE + other.vitaminE
+        carotene = self.carotene + other.carotene
+        cholesterol = self.cholesterol + other.cholesterol
+        Mg = self.Mg + other.Mg
+        Ca = self.Ca + other.Ca
+        Fe = self.Fe + other.Fe
+        Zn = self.Zn + other.Zn
+        Cu = self.Cu + other.Cu
+        Mn = self.Mn + other.Mn
+        K = self.K + other.K
+        P = self.P + other.P
+        Na = self.Na + other.Na
+        Se = self.Se + other.Se
+        niacin = self.niacin + other.niacin
+        thiamine = self.thiamine + other.thiamine
+        return Element(
+            calorie=calorie,
+            carbohydrate=carbohydrate,
+            fat=fat,
+            protein=protein,
+            cellulose=cellulose,
+            vitaminA=vitaminA,
+            vitaminB1=vitaminB1,
+            vitaminB2=vitaminB2,
+            vitaminB6=vitaminB6,
+            vitaminC=vitaminC,
+            vitaminE=vitaminE,
+            carotene=carotene,
+            cholesterol=cholesterol,
+            Mg=Mg,
+            Ca=Ca,
+            Fe=Fe,
+            Zn=Zn,
+            Cu=Cu,
+            Mn=Mn,
+            K=K,
+            P=P,
+            Na=Na,
+            Se=Se,
+            niacin=niacin,
+            thiamine=thiamine)
 
 
 class Occupation(models.Model):
@@ -42,15 +92,18 @@ class Occupation(models.Model):
     职业
     """
     occupation_name = models.CharField(max_length=16, unique=True, primary_key=True)
-    elements =  models.OneToOneField(Element, on_delete=models.CASCADE,null=True,blank=True)
+    elements = models.OneToOneField(Element, on_delete=models.CASCADE, null=True, blank=True)
+
     def __str__(self):
         return self.occupation_name
+
 
 class FoodMaterial(models.Model):
     """
     食材
     """
     material_name = models.CharField(max_length=64, primary_key=True)
+    elements = models.OneToOneField(Element, on_delete=models.CASCADE, null=True, blank=True)
 
     # material_effect = models.ManyToManyField(Physique, through='MaterialEffect')  # 食材_效果_体质
 
@@ -71,6 +124,7 @@ class Menu(models.Model):
     image_url = models.URLField(max_length=200, blank=True, null=True)
     practice = models.TextField(default='')
     cook_quantity = models.ManyToManyField(FoodMaterial, through='CookQuantity')  # 菜谱_做菜用量_食材
+    elements = models.OneToOneField(Element, on_delete=models.CASCADE, null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -94,15 +148,15 @@ class Physique(models.Model):
     """
     physical_name = models.CharField(max_length=64, primary_key=True)
     cure_material = models.ManyToManyField(FoodMaterial, blank=True, null=True)
-    elements =  models.OneToOneField(Element, on_delete=models.CASCADE,null=True,blank=True)
+    elements = models.OneToOneField(Element, on_delete=models.CASCADE, null=True, blank=True)
 
     def __str__(self):
         return self.physical_name
 
 
 class Illness(models.Model):
-    menu_classification = models.OneToOneField(MenuClassification,primary_key=True,on_delete=models.CASCADE)
-    elements = models.OneToOneField(Element, on_delete=models.CASCADE, null=True,blank=True)
+    menu_classification = models.OneToOneField(MenuClassification, primary_key=True, on_delete=models.CASCADE)
+    elements = models.OneToOneField(Element, on_delete=models.CASCADE, null=True, blank=True)
 
 
 # class MaterialEffect(models.Model):

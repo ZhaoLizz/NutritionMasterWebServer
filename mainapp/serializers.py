@@ -2,6 +2,11 @@ from rest_framework import serializers
 from mainapp.models import *
 
 
+class ElementSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Element
+        fields = '__all__'
+
 class CookQuantitySerializer(serializers.ModelSerializer):
     # 这两行都可以注释掉,用默认值
     menu = serializers.ReadOnlyField(source='menu.name')
@@ -27,12 +32,13 @@ class MenuSerializer(serializers.ModelSerializer):
         many=True,
         read_only=True,
     )
+    elements = ElementSerializer(read_only=True)
 
     class Meta:
         model = Menu
         fields = (
             'flavor', 'calorie', 'name', 'technology', 'image_url', 'cook_quantity', 'practice',
-            'menuclassification_set')
+            'menuclassification_set','elements')
         # fields = '__all__'
 
 
@@ -47,10 +53,12 @@ class OccupationSerializer(serializers.ModelSerializer):
         many=True,
         read_only=True,
     )
+    elements = ElementSerializer(read_only=True)
+
 
     class Meta:
         model = Occupation
-        fields = ('occupation_name', 'menuclassification_set')
+        fields = ('occupation_name', 'menuclassification_set','elements')
 
 
 class PhysiqueSerializer(serializers.ModelSerializer):
@@ -58,10 +66,12 @@ class PhysiqueSerializer(serializers.ModelSerializer):
         many=True,
         read_only=True,
     )
+    elements = ElementSerializer(read_only=True)
+
 
     class Meta:
         model = Physique
-        fields = ('physical_name', 'cure_material')
+        fields = ('physical_name', 'cure_material','elements')
 
 
 class MyUserSerializer(serializers.ModelSerializer):
