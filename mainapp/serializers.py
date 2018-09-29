@@ -7,6 +7,7 @@ class ElementSerializer(serializers.ModelSerializer):
         model = Element
         fields = '__all__'
 
+
 class CookQuantitySerializer(serializers.ModelSerializer):
     # 这两行都可以注释掉,用默认值
     menu = serializers.ReadOnlyField(source='menu.name')
@@ -38,14 +39,17 @@ class MenuSerializer(serializers.ModelSerializer):
         model = Menu
         fields = (
             'flavor', 'calorie', 'name', 'technology', 'image_url', 'cook_quantity', 'practice',
-            'menuclassification_set','elements')
+            'menuclassification_set', 'elements')
         # fields = '__all__'
 
 
 class FoodMaterialSerializer(serializers.ModelSerializer):
+    elements = ElementSerializer(read_only=True)
+    cook_quantity = CookQuantitySerializer(source='cookquantity_set', many=True, read_only=True)  # 重写字段,用于展示详细信息
+
     class Meta:
         model = FoodMaterial
-        fields = '__all__'
+        fields = ('material_name','cook_quantity' ,'elements')
 
 
 class OccupationSerializer(serializers.ModelSerializer):
@@ -55,10 +59,9 @@ class OccupationSerializer(serializers.ModelSerializer):
     )
     elements = ElementSerializer(read_only=True)
 
-
     class Meta:
         model = Occupation
-        fields = ('occupation_name', 'menuclassification_set','elements')
+        fields = ('occupation_name', 'menuclassification_set', 'elements')
 
 
 class PhysiqueSerializer(serializers.ModelSerializer):
@@ -68,10 +71,9 @@ class PhysiqueSerializer(serializers.ModelSerializer):
     )
     elements = ElementSerializer(read_only=True)
 
-
     class Meta:
         model = Physique
-        fields = ('physical_name', 'cure_material','elements')
+        fields = ('physical_name', 'cure_material', 'elements')
 
 
 class MyUserSerializer(serializers.ModelSerializer):

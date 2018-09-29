@@ -111,15 +111,15 @@ class FoodMaterialViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = FoodMaterial.objects.all()
     serializer_class = FoodMaterialSerializer
 
-    def retrieve(self, request, pk=None, *args, **kwargs):
-        """
-        查询食材可以做的菜
-        :param pk: 食材名
-        """
-        food_material = FoodMaterial.objects.get(material_name=pk)
-        cook_quantities = CookQuantity.objects.filter(material=food_material)
-        serializer = CookQuantitySerializer(cook_quantities, many=True)
-        return Response(serializer.data)
+    # def retrieve(self, request, pk=None, *args, **kwargs):
+    #     """
+    #     查询食材可以做的菜
+    #     :param pk: 食材名
+    #     """
+    #     food_material = FoodMaterial.objects.get(material_name=pk)
+    #     cook_quantities = CookQuantity.objects.filter(material=food_material)
+    #     serializer = CookQuantitySerializer(cook_quantities, many=True)
+    #     return Response(serializer.data)
 
 
 class MyUserViewSet(viewsets.ModelViewSet):
