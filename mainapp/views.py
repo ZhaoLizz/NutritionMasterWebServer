@@ -10,9 +10,9 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from mainapp.forms import UploadFileForm
-from mainapp.models import Menu, CookQuantity, FoodMaterial, MyUser, MenuClassification, Occupation, Physique
+from mainapp.models import Menu, CookQuantity, FoodMaterial, MyUser, MenuClassification, Occupation, Physique, Illness
 from mainapp.serializers import MenuSerializer, CookQuantitySerializer, MyUserSerializer, MenuClassificationSerializer, \
-    OccupationSerializer, PhysiqueSerializer, FoodMaterialSerializer
+    OccupationSerializer, PhysiqueSerializer, FoodMaterialSerializer, IllnessSerializer
 
 
 #
@@ -69,10 +69,11 @@ class MenuViewSet(viewsets.ReadOnlyModelViewSet):
         count = request.GET['count']
         count = int(count)
         # sample : 从一个list中随机挑选n个数组成list
-        random_index = random.sample(range(size),count)
+        random_index = random.sample(range(size), count)
         random_menus = np.array(self.queryset)[random_index]
-        serializer = MenuSerializer(random_menus,many=True)
+        serializer = MenuSerializer(random_menus, many=True)
         return Response(serializer.data)
+
 
 # class CookQuantityDetail(APIView):
 #     def get(self, request, name):
@@ -165,3 +166,9 @@ def upload_file(request):
         return HttpResponse(uploaded_file_url)
 
     return HttpResponse('test')
+
+
+class IllnessViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Illness.objects.all()
+    serializer_class = IllnessSerializer
+    lookup_field = 'menu_classification'

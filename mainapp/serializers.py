@@ -49,7 +49,7 @@ class FoodMaterialSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FoodMaterial
-        fields = ('material_name','cook_quantity' ,'elements')
+        fields = ('material_name', 'cook_quantity', 'elements')
 
 
 class OccupationSerializer(serializers.ModelSerializer):
@@ -92,3 +92,12 @@ class MyUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = MyUser
         fields = '__all__'
+
+
+class IllnessSerializer(serializers.ModelSerializer):
+    menu_classification = MenuClassificationSerializer(read_only=True)
+    elements = ElementSerializer(read_only=True)
+
+    class Meta:
+        model = Illness
+        fields = ('menu_classification', 'elements')
