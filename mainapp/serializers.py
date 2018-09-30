@@ -61,7 +61,7 @@ class OccupationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Occupation
-        fields = ('occupation_name', 'menuclassification_set', 'elements')
+        fields = ('occupation_name', 'menuclassification_set', 'elements','bmi_classification')
 
 
 class PhysiqueSerializer(serializers.ModelSerializer):

@@ -93,6 +93,7 @@ class Occupation(models.Model):
     """
     occupation_name = models.CharField(max_length=16, unique=True, primary_key=True)
     elements = models.OneToOneField(Element, on_delete=models.CASCADE, null=True, blank=True)
+    bmi_classification = models.IntegerField(default=-1)
 
     def __str__(self):
         return self.occupation_name
