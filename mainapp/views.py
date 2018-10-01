@@ -10,7 +10,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from mainapp.forms import UploadFileForm
-from mainapp.models import Menu, CookQuantity, FoodMaterial, MyUser, MenuClassification, Occupation, Physique, Illness
+from mainapp.models import Menu, CookQuantity, FoodMaterial, MyUser, MenuClassification, Occupation, Physique, Illness, \
+    Element
 from mainapp.serializers import MenuSerializer, CookQuantitySerializer, MyUserSerializer, MenuClassificationSerializer, \
     OccupationSerializer, PhysiqueSerializer, FoodMaterialSerializer, IllnessSerializer
 
@@ -132,6 +133,43 @@ class MyUserViewSet(viewsets.ModelViewSet):
     queryset = MyUser.objects.all()
     serializer_class = MyUserSerializer
     lookup_field = 'username'
+
+    @action(detail=False, methods=['post'])
+    def eaten_menu(self, request):
+        """
+        吃了一个菜,就传过来这个菜名,然后动态改变用户已吃的营养元素的量
+        :param request: 带有一个menu_name参数,一个username参数
+        """
+        menu_name = request.POST['menu_name']
+
+        menu_list = Menu.objects.filter(name=menu_name)
+        if (menu_list.count() > 0):
+            # 首先获取到menu存在的elements信息
+            menu = menu_list[0]
+            menu_elements = menu.elements
+            # 然后获取user的elements
+            username = request.POST['username']
+            user = MyUser.objects.get(username=username)
+            user_element = user.eaten_elements if user.eaten_elements != None else Element()
+
+            print('log','userelement',user_element.calorie)
+            print('log','menuelement',menu_elements.calorie)
+
+
+            # 加值,保存
+            user_element += menu_elements
+            # 把由material计算得到的卡路里换成直接爬到的卡路里
+            user_element.calorie = user_element.calorie - menu_elements.calorie + menu.calorie
+
+            print('log','after add ',user_element.calorie)
+
+            user_element.save()
+            user.eaten_elements = user_element
+            user.save()
+            return Response(MyUserSerializer(user).data)
+        else:
+            return Http404('not found this menu : ' + menu_name)
+        # return HttpResponse('test')
 
 
 class MenuClassificationViewSet(viewsets.ReadOnlyModelViewSet):

@@ -37,7 +37,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'mainapp',
     'django_extensions',
-    'rest_framework'
+    'rest_framework',
+    'django_crontab'
 ]
 
 MIDDLEWARE = [
@@ -118,3 +119,9 @@ USE_TZ = True
 
 STATIC_URL = '/media/'
 STATIC_ROOT = os.path.join(BASE_DIR,'media')
+
+
+# 定时任务conjobs配置
+CRONJOBS = [
+    ('0 0 * * 1', 'mainapp.scheduled_job.weekly_clear_user_elements'),
+]

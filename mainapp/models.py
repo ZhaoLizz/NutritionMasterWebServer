@@ -200,9 +200,18 @@ class MyUser(AbstractUser):
     physical_name = models.ForeignKey(Physique, on_delete=models.CASCADE, blank=True, null=True)
     occupation_name = models.ForeignKey(Occupation, on_delete=models.CASCADE, blank=True, null=True)
     sex = models.IntegerField(default=1)
+    age = models.IntegerField(default=0)
+    height = models.FloatField(default=0)
+    weight = models.FloatField(default=0)
+    illness = models.ManyToManyField(Illness, blank=True, null=True)
+    bmi = models.IntegerField(default=-1)
+    eaten_elements = models.OneToOneField(Element, on_delete=models.SET_NULL, null=True, blank=True)  # 已经吃过的营养元素量
+
 
     def __str__(self):
         return self.username
+
+
 
 
 class UploadFile(models.Model):
@@ -210,3 +219,4 @@ class UploadFile(models.Model):
 
     def __str__(self):
         return self.file
+
