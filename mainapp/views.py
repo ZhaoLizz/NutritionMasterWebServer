@@ -54,6 +54,9 @@ class MenuViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Menu.objects.all()
     serializer_class = MenuSerializer
 
+
+
+
     @action(detail=False, methods=['get'])
     def get_random_menus(self, request):
         import random
@@ -67,6 +70,13 @@ class MenuViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = MenuSerializer(random_menus, many=True)
         return Response(serializer.data)
 
+        # random  0-10的数，0-4病  5-7体质  8-10职业
+        # username = request.GET['username']
+        # user = MyUser.objects.get(username=username)
+
+
+
+
     @action(detail=False, methods=['post', 'get'])
     def get_menus_by_elements(self, request):
         """
@@ -79,7 +89,7 @@ class MenuViewSet(viewsets.ReadOnlyModelViewSet):
         localtime = time.localtime()
         week = int(time.strftime("%w", localtime))
         # 返回每天的营养元素允许量(本周剩下的量 / 本周剩余的天数)
-        week_denominator = (7 - week + 1) if week != 0 else 1 # week = 0是周日,周日就不用处理了,直接分母为1
+        week_denominator = (7 - week + 1) if week != 0 else 1  # week = 0是周日,周日就不用处理了,直接分母为1
 
         # 通过传入的参数构造sql查询字符串
         post = request.POST
@@ -87,15 +97,17 @@ class MenuViewSet(viewsets.ReadOnlyModelViewSet):
         sql = 'SELECT "mainapp_menu"."name", "mainapp_menu"."calorie", "mainapp_menu"."minutes", "mainapp_menu"."flavor", "mainapp_menu"."technology", "mainapp_menu"."image_url", "mainapp_menu"."practice", "mainapp_menu"."elements_id" FROM "mainapp_menu" INNER JOIN "mainapp_element" ON ("mainapp_menu"."elements_id" = "mainapp_element"."id") WHERE '
         query_sql = ''
         for k, v in post.items():
-            if(k == 'calorie'):
-                query_sql += ' AND "mainapp_menu"."calorie" <= ' + str(float(v)/week_denominator) + ' AND "mainapp_menu"."calorie" > 0'
+            if (k == 'calorie'):
+                query_sql += ' AND "mainapp_menu"."calorie" <= ' + str(
+                    float(v) / week_denominator) + ' AND "mainapp_menu"."calorie" > 0'
             else:
-                query_sql += ' AND "mainapp_element"."' + k + '" <= ' + str(float(v)/week_denominator) + ' AND "mainapp_element"."' + k + '" > 0'
+                query_sql += ' AND "mainapp_element"."' + k + '" <= ' + str(
+                    float(v) / week_denominator) + ' AND "mainapp_element"."' + k + '" > 0'
         query_sql = sql + '( ' + query_sql[5:] + ' )'
         menus = Menu.objects.raw(query_sql)
-        print('log sql',query_sql)
-        print('log count',len(list(menus)))
-        serializer = MenuSerializerLighter(menus, many=True) # MenuSerializer 耦合了CookQuantity,可能造成查询比较慢.上线后试一试效果
+        print('log sql', query_sql)
+        print('log count', len(list(menus)))
+        serializer = MenuSerializerLighter(menus, many=True)  # MenuSerializer 耦合了CookQuantity,可能造成查询比较慢.上线后试一试效果
         return Response(serializer.data)
         # return HttpResponse(query_sql)
 
@@ -124,7 +136,6 @@ class MenuViewSet(viewsets.ReadOnlyModelViewSet):
         # Se = post.get('Se')
         # niacin = post.get('niacin')  # B3
         # thiamine = post.get('thiamine')  # B1
-
 
 
 # class CookQuantityDetail(APIView):
@@ -185,8 +196,6 @@ class MyUserViewSet(viewsets.ModelViewSet):
     serializer_class = MyUserSerializer
     lookup_field = 'username'
 
-
-
     @action(detail=False, methods=['post'])
     def eaten_menu(self, request):
         """
@@ -197,16 +206,16 @@ class MyUserViewSet(viewsets.ModelViewSet):
         :param request: 带有一个elements参数,一个username参数
         """
         username = request.POST['username']
-        user = MyUser.objects.get(username=username) # user对象
+        user = MyUser.objects.get(username=username)  # user对象
         # 根据user对象找到user对应的elements
         user_element = user.eaten_elements if user.eaten_elements != None else Element()
 
         # 根据POST传入的元素kv,创建一个Element对象
         eaten_elements = Element()
         for k, v in request.POST.items():
-            if(k != 'username'):
-                setattr(eaten_elements,k,float(v))
-                print('log eaten_elements',getattr(eaten_elements,k))
+            if (k != 'username'):
+                setattr(eaten_elements, k, float(v))
+                print('log eaten_elements', getattr(eaten_elements, k))
         # print('log',user_element)
         # print('log',eaten_elements)
 
@@ -216,7 +225,6 @@ class MyUserViewSet(viewsets.ModelViewSet):
         user.save()
 
         return Response(MyUserSerializer(user).data)
-
 
         # menu_name = request.POST['menu_name']
         # menu_list = Menu.objects.filter(name=menu_name)
