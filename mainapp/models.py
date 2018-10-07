@@ -87,6 +87,8 @@ class Element(models.Model):
             thiamine=thiamine)
 
 
+
+
 class Occupation(models.Model):
     """
     职业
@@ -126,6 +128,7 @@ class Menu(models.Model):
     practice = models.TextField(default='')
     cook_quantity = models.ManyToManyField(FoodMaterial, through='CookQuantity')  # 菜谱_做菜用量_食材
     elements = models.OneToOneField(Element, on_delete=models.CASCADE, null=True, blank=True)
+    is_breakfast = models.IntegerField(default=0) # 1是早餐,0是午晚餐   默认为0
 
     def __str__(self):
         return self.name
@@ -211,8 +214,12 @@ class MyUser(AbstractUser):
     def __str__(self):
         return self.username
 
+class Trick(models.Model):
+    title = models.TextField()
+    content = models.TextField()
 
-
+    def __str__(self):
+        return self.title
 
 class UploadFile(models.Model):
     file = models.FileField(upload_to='mainapp/media')

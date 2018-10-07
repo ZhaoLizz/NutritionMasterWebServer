@@ -38,9 +38,19 @@ class MenuSerializer(serializers.ModelSerializer):
     class Meta:
         model = Menu
         fields = (
-            'flavor', 'calorie', 'name', 'technology', 'image_url', 'cook_quantity', 'practice',
-            'menuclassification_set', 'elements')
+            'flavor', 'calorie', 'name','is_breakfast','technology', 'image_url', 'cook_quantity', 'practice',
+            'menuclassification_set', 'elements',)
         # fields = '__all__'
+
+
+class MenuSerializerLighter(serializers.ModelSerializer):
+    """
+    轻量级的MenuSerializer
+    """
+
+    class Meta:
+        model = Menu
+        fields = ('name', 'calorie', 'elements',)
 
 
 class FoodMaterialSerializer(serializers.ModelSerializer):
@@ -61,7 +71,7 @@ class OccupationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Occupation
-        fields = ('occupation_name', 'menuclassification_set', 'elements','bmi_classification')
+        fields = ('occupation_name', 'menuclassification_set', 'elements', 'bmi_classification')
 
 
 class PhysiqueSerializer(serializers.ModelSerializer):
@@ -79,6 +89,7 @@ class PhysiqueSerializer(serializers.ModelSerializer):
 class MyUserSerializer(serializers.ModelSerializer):
     # occupation_name = OccupationSerializer(source='occupation_set', many=False, read_only=False)
     # physical_name = PhysiqueSerializer(many=False, read_only=False)
+    eaten_elements = ElementSerializer(read_only=True)
 
     physical_name = serializers.PrimaryKeyRelatedField(
         allow_empty=True,
@@ -101,3 +112,9 @@ class IllnessSerializer(serializers.ModelSerializer):
     class Meta:
         model = Illness
         fields = ('menu_classification', 'elements')
+
+
+class TrickSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Trick
+        fields = '__all__'

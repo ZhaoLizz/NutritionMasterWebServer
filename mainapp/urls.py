@@ -15,6 +15,7 @@ router.register('menuclassification',views.MenuClassificationViewSet)
 router.register('occupation',views.OccupationViewSet)
 router.register('physique',views.PhysiqueViewSet)
 router.register('illness',views.IllnessViewSet)
+router.register('trick',views.TrickViewSet)
 
 
 urlpatterns = [
