@@ -54,28 +54,55 @@ class MenuViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Menu.objects.all()
     serializer_class = MenuSerializer
 
-
-
+    def retrieve(self, request, *args, **kwargs):
+        """
+        模糊  搜索菜,返回菜list
+        """
+        menu_name = kwargs['pk']
+        menus = Menu.objects.filter(name__icontains=menu_name)
+        menu = menus[0] if menus.count() > 0 else Menu()
+        serializer = MenuSerializer(menu)
+        return Response(serializer.data)
 
     @action(detail=False, methods=['get'])
     def get_random_menus(self, request):
-        import random
+        """
+        根据user信息和推荐算法推荐菜
+        :param request: 
+        :return: 
+        """
         import numpy as np
-        size = self.queryset.count()
-        count = request.GET['count']
-        count = int(count)
-        # sample : 从一个list中随机挑选n个数组成list
-        random_index = random.sample(range(size), count)
-        random_menus = np.array(self.queryset)[random_index]
-        serializer = MenuSerializer(random_menus, many=True)
-        return Response(serializer.data)
+        menus_count = request.GET['count']  # 希望获取几个菜
+        menus_count = int(menus_count)
 
         # random  0-10的数，0-4病  5-7体质  8-10职业
-        # username = request.GET['username']
-        # user = MyUser.objects.get(username=username)
+        username = request.GET['username']  # 通过username查询用户的病,体质,职业
+        user = MyUser.objects.get(username=username)
 
+        user_message_list = [user.illness.all(), user.occupation_name, user.physical_name]
+        user_message_list = [message for message in user_message_list if message is not None]  # 去除掉user信息里面None的值
+        random_message = user_message_list[np.random.randint(len(user_message_list))]  # 等概率推荐,随机从非空的病,体质,职业中抽取一个
 
+        if type(random_message) is type(Physique.objects.all()[0]):
+            # Physique
+            materials = random_message.cure_material.all()
+            random_material = materials[np.random.randint(materials.count())]
+            menus = random_material.menu_set.all()
+        elif type(random_message) is type(Occupation.objects.all()[0]):
+            # Occupation
+            classifications = random_message.menuclassification_set.all()
+            random_classification = classifications[np.random.randint(classifications.count())]
+            menus = random_classification.menu_effect.all()
+        else:
+            # many illness
+            illness_count = random_message.count()
+            illness = random_message[np.random.randint(illness_count)]
+            menus = illness.menu_classification.menu_effect.all()
 
+        menus_count = menus_count if menus_count < menus.count() else menus.count()  # 希望选取的个数
+        random_menus = np.random.choice(np.array(menus), menus_count) # 从已有的menus中随机选出几个
+        serializer = MenuSerializer(random_menus, many=True)
+        return Response(serializer.data)
 
     @action(detail=False, methods=['post', 'get'])
     def get_menus_by_elements(self, request):
