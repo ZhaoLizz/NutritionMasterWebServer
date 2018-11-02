@@ -87,8 +87,6 @@ class Element(models.Model):
             thiamine=thiamine)
 
 
-
-
 class Occupation(models.Model):
     """
     职业
@@ -128,7 +126,7 @@ class Menu(models.Model):
     practice = models.TextField(default='')
     cook_quantity = models.ManyToManyField(FoodMaterial, through='CookQuantity')  # 菜谱_做菜用量_食材
     elements = models.OneToOneField(Element, on_delete=models.CASCADE, null=True, blank=True)
-    is_breakfast = models.IntegerField(default=0) # 1是早餐,0是午晚餐   默认为0
+    is_breakfast = models.IntegerField(default=0)  # 1是早餐,0是午晚餐   默认为0
 
     def __str__(self):
         return self.name
@@ -209,10 +207,11 @@ class MyUser(AbstractUser):
     illness = models.ManyToManyField(Illness, blank=True, null=True)
     bmi = models.IntegerField(default=-1)
     eaten_elements = models.OneToOneField(Element, on_delete=models.SET_NULL, null=True, blank=True)  # 已经吃过的营养元素量
-
+    menu_history = models.ManyToManyField(Menu, through='History', blank=True, null=True)
 
     def __str__(self):
         return self.username
+
 
 class Trick(models.Model):
     title = models.TextField()
@@ -221,9 +220,18 @@ class Trick(models.Model):
     def __str__(self):
         return self.title
 
+
+class History(models.Model):
+    time = models.DateTimeField(auto_now=True)
+    user = models.ForeignKey(MyUser, on_delete=True)
+    menu = models.ForeignKey(Menu, on_delete=True)
+
+    def __str__(self):
+        return self.user.username + ' ' + self.menu.name + ' ' + self.time.__str__()
+
+
 class UploadFile(models.Model):
     file = models.FileField(upload_to='mainapp/media')
 
     def __str__(self):
         return self.file
-

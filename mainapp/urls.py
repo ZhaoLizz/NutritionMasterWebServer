@@ -17,7 +17,6 @@ router.register('physique',views.PhysiqueViewSet)
 router.register('illness',views.IllnessViewSet)
 router.register('trick',views.TrickViewSet)
 
-
 urlpatterns = [
     # path('menus/', views.MenuList.as_view(), name='menu-list'),
     # path('menus/<str:name>/', views.MenuDetail.as_view(), name='menu-detail'),

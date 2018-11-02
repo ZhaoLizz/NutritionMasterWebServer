@@ -118,3 +118,8 @@ class TrickSerializer(serializers.ModelSerializer):
     class Meta:
         model = Trick
         fields = '__all__'
+
+class HistorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = History
+        fields = '__all__'

@@ -60,6 +60,12 @@ class MenuViewSet(viewsets.ReadOnlyModelViewSet):
         """
         menu_name = kwargs['pk']
         menus = Menu.objects.filter(name__icontains=menu_name)
+        i = 0
+        while menus.count() == 0:  # 如果搜不到这个菜,就减一下名字
+            menu_name = menu_name[1:] if i % 2 == 0 else menu_name[:-1]
+            print(menu_name)
+            i += 1
+            menus = Menu.objects.filter(name__icontains=menu_name)
         menu = menus[0] if menus.count() > 0 else Menu()
         serializer = MenuSerializer(menu)
         return Response(serializer.data)
@@ -75,32 +81,37 @@ class MenuViewSet(viewsets.ReadOnlyModelViewSet):
         menus_count = request.GET['count']  # 希望获取几个菜
         menus_count = int(menus_count)
 
-        # random  0-10的数，0-4病  5-7体质  8-10职业
-        username = request.GET['username']  # 通过username查询用户的病,体质,职业
+        username = request.GET.get('username', 'zhaolizhi')  # 通过username查询用户的病,体质,职业,默认username为zhaolizhi
         user = MyUser.objects.get(username=username)
 
         user_message_list = [user.illness.all(), user.occupation_name, user.physical_name]
         user_message_list = [message for message in user_message_list if message is not None]  # 去除掉user信息里面None的值
-        random_message = user_message_list[np.random.randint(len(user_message_list))]  # 等概率推荐,随机从非空的病,体质,职业中抽取一个
 
-        if type(random_message) is type(Physique.objects.all()[0]):
-            # Physique
-            materials = random_message.cure_material.all()
-            random_material = materials[np.random.randint(materials.count())]
-            menus = random_material.menu_set.all()
-        elif type(random_message) is type(Occupation.objects.all()[0]):
-            # Occupation
-            classifications = random_message.menuclassification_set.all()
-            random_classification = classifications[np.random.randint(classifications.count())]
-            menus = random_classification.menu_effect.all()
-        else:
-            # many illness
-            illness_count = random_message.count()
-            illness = random_message[np.random.randint(illness_count)]
-            menus = illness.menu_classification.menu_effect.all()
+        if (len(user_message_list) == 1 and hasattr(user_message_list[0], 'count') and user_message_list[
+            0].count() == 0):  # 如果三个属性都是空
+            print('三个属性都是None')
+            menus = Menu.objects.all()
+        else:  # 如果体质 病理 职业都为空
+            # 等概率推荐,随机从非空的病,体质,职业中抽取一个
+            random_message = user_message_list[np.random.randint(len(user_message_list))]
+            if type(random_message) is type(Physique.objects.all()[0]):
+                # Physique
+                materials = random_message.cure_material.all()
+                random_material = materials[np.random.randint(materials.count())]
+                menus = random_material.menu_set.all()
+            elif type(random_message) is type(Occupation.objects.all()[0]):
+                # Occupation
+                classifications = random_message.menuclassification_set.all()
+                random_classification = classifications[np.random.randint(classifications.count())]
+                menus = random_classification.menu_effect.all()
+            else:
+                # many illness
+                illness_count = random_message.count()
+                illness = random_message[np.random.randint(illness_count)]
+                menus = illness.menu_classification.menu_effect.all()
 
         menus_count = menus_count if menus_count < menus.count() else menus.count()  # 希望选取的个数
-        random_menus = np.random.choice(np.array(menus), menus_count) # 从已有的menus中随机选出几个
+        random_menus = np.random.choice(np.array(menus), menus_count)  # 从已有的menus中随机选出几个
         serializer = MenuSerializer(random_menus, many=True)
         return Response(serializer.data)
 
@@ -134,35 +145,42 @@ class MenuViewSet(viewsets.ReadOnlyModelViewSet):
         menus = Menu.objects.raw(query_sql)
         print('log sql', query_sql)
         print('log count', len(list(menus)))
-        serializer = MenuSerializerLighter(menus, many=True)  # MenuSerializer 耦合了CookQuantity,可能造成查询比较慢.上线后试一试效果
-        return Response(serializer.data)
-        # return HttpResponse(query_sql)
 
-        # calorie = post.get('calorie')
-        # carbohydrate = post.get('carbohydrate')
-        # fat = post.get('fat')
-        # protein = post.get('protein')
-        # cellulose = post.get('cellulose')
-        # vitaminA = post.get('vitaminA')
-        # vitaminB1 = post.get('vitaminB1')
-        # vitaminB2 = post.get('vitaminB2')
-        # vitaminB6 = post.get('vitaminB6')
-        # vitaminC = post.get('vitaminC')
-        # vitaminE = post.get('vitaminE')
-        # carotene = post.get('carotene')
-        # cholesterol = post.get('cholesterol')
-        # Mg = post.get('Mg')
-        # Ca = post.get('Ca')
-        # Fe = post.get('Fe')  # x
-        # Zn = post.get('Zn')
-        # Cu = post.get('Cu')  # x
-        # Mn = post.get('Mn')  # x
-        # K = post.get('K')
-        # P = post.get('P')
-        # Na = post.get('Na')
-        # Se = post.get('Se')
-        # niacin = post.get('niacin')  # B3
-        # thiamine = post.get('thiamine')  # B1
+        import random
+        random.shuffle(menus)
+        serializer = MenuSerializerLighter(menus, many=True)  # 轻量级的Menu
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['post', 'patch'])
+    def get_menus_by_materials(self, request):
+        """
+        通过多个material组合找出这些material可以做的菜
+        :param request:
+        :return:
+        """
+        material_names = request.POST.getlist('material')
+        print('param names', material_names)
+
+        food_materials = []
+        # 找到含有material名字的material对象,存到food_materials list中
+        for m_name in material_names:  # 遍历用户POST的食材名字
+            # 把名字相近的食材都从数据库读出来,比如蒜,大蒜
+            materials = FoodMaterial.objects.filter(material_name__contains=m_name)
+            for m in materials:
+                food_materials.append(m)
+
+        print('food materials', food_materials)
+
+        # 把第一个material_0从list中取出来
+        material_0, material_list = food_materials[0], food_materials[1:]
+        # 首先查询material_0对应的菜
+        query_set = Menu.objects.filter(cookquantity__material=material_0)
+        # 然后再在material_0查询结果的基础上求其他material对应的菜的交集
+        for material in material_list:
+            query_set = query_set.intersection(Menu.objects.filter(cookquantity__material=material))
+        print('query set', query_set)
+        serializer = MenuSerializer(query_set, many=True)
+        return Response(serializer.data)
 
 
 # class CookQuantityDetail(APIView):
@@ -202,6 +220,13 @@ class FoodMaterialViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = FoodMaterial.objects.all()
     serializer_class = FoodMaterialSerializer
 
+    def retrieve(self, request, *args, **kwargs):
+        material_name = kwargs['pk']
+        food_materials = FoodMaterial.objects.filter(material_name__icontains=material_name)
+        material = food_materials[0] if food_materials.count() > 0 else FoodMaterial()
+        serializer = FoodMaterialSerializer(material)
+        return Response(serializer.data)
+
     # def retrieve(self, request, pk=None, *args, **kwargs):
     #     """
     #     查询食材可以做的菜
@@ -222,6 +247,34 @@ class MyUserViewSet(viewsets.ModelViewSet):
     queryset = MyUser.objects.all()
     serializer_class = MyUserSerializer
     lookup_field = 'username'
+
+    @action(detail=False, methods=['post'])
+    def add_eaten_history(self, request):
+        """
+        每次点一个菜,就把这个菜加入到History表中和当前的user关联
+        :param request:
+        :return:
+        """
+        username = request.POST['username']
+        menu_name = request.POST['menu']
+        user = MyUser.objects.filter(username=username)[0]
+        menu = Menu.objects.filter(name=menu_name)[0]
+
+        # 先删除以前的记录以免占用资源
+        History.objects.filter(user=user, menu=menu).delete()
+        new_history = History.objects.create(user=user, menu=menu)
+        return Response(HistorySerializer(new_history).data)
+
+    @action(detail=False, methods=['get'])
+    def get_eaten_history(self, request):
+        """
+        每次点一个菜,就把这个菜加入到History表中和当前的user关联
+        :param request:
+        """
+        username = request.GET['username']
+        user = MyUser.objects.filter(username=username)[0]
+        history = History.objects.filter(user=user).order_by('-time')
+        return Response(HistorySerializer(history, many=True).data)
 
     @action(detail=False, methods=['post'])
     def eaten_menu(self, request):
