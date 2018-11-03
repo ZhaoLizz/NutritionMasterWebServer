@@ -162,25 +162,28 @@ class MenuViewSet(viewsets.ReadOnlyModelViewSet):
         print('param names', material_names)
 
         food_materials = []
-        # 找到含有material名字的material对象,存到food_materials list中
+        # 每个名字相近的食材 组合为一个query_set存到list中
         for m_name in material_names:  # 遍历用户POST的食材名字
             # 把名字相近的食材都从数据库读出来,比如蒜,大蒜
-            materials = FoodMaterial.objects.filter(material_name__contains=m_name)
-            for m in materials:
-                food_materials.append(m)
+            m_qs = FoodMaterial.objects.filter(material_name__contains=m_name)
+            food_materials.append(m_qs)
 
         print('food materials', food_materials)
 
-        # 把第一个material_0从list中取出来
-        material_0, material_list = food_materials[0], food_materials[1:]
+        # 把第一个material_0(query set)从list中取出来
+        material_0, food_materials = food_materials[0], food_materials[1:]
         # 首先查询material_0对应的菜
-        query_set = Menu.objects.filter(cookquantity__material=material_0)
+        query_set = Menu.objects.filter(cookquantity__material__in=material_0)
         # 然后再在material_0查询结果的基础上求其他material对应的菜的交集
-        for material in material_list:
-            query_set = query_set.intersection(Menu.objects.filter(cookquantity__material=material))
+        for materials in food_materials:
+            query_set = query_set.intersection(Menu.objects.filter(cookquantity__material__in=materials))
         print('query set', query_set)
-        serializer = MenuSerializer(query_set, many=True)
-        return Response(serializer.data)
+
+        if query_set.count() == 0:
+            return HttpResponse(status=404)
+        else:
+            serializer = MenuSerializer(query_set, many=True)
+            return Response(serializer.data)
 
 
 # class CookQuantityDetail(APIView):
