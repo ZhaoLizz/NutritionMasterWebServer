@@ -146,8 +146,10 @@ class MenuViewSet(viewsets.ReadOnlyModelViewSet):
         print('log sql', query_sql)
         print('log count', len(list(menus)))
 
-        import random
-        random.shuffle(menus)
+
+
+
+
         serializer = MenuSerializerLighter(menus, many=True)  # 轻量级的Menu
         return Response(serializer.data)
 
