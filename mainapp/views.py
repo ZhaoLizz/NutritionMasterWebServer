@@ -84,16 +84,26 @@ class MenuViewSet(viewsets.ReadOnlyModelViewSet):
         username = request.GET.get('username', 'zhaolizhi')  # 通过username查询用户的病,体质,职业,默认username为zhaolizhi
         user = MyUser.objects.get(username=username)
 
-        user_message_list = [user.illness.all(), user.occupation_name, user.physical_name]
+        if user.illness.all().count() is not 0: # 如果病的数量不为0
+            user_message_list = [user.illness.all(), user.occupation_name, user.physical_name]
+        else:
+            user_message_list = [user.occupation_name, user.physical_name]
+            print('here',user_message_list)
         user_message_list = [message for message in user_message_list if message is not None]  # 去除掉user信息里面None的值
 
-        if (len(user_message_list) == 1 and hasattr(user_message_list[0], 'count') and user_message_list[
-            0].count() == 0):  # 如果三个属性都是空
+        # if (len(user_message_list) == 0 and hasattr(user_message_list[0], 'count') and user_message_list[
+        #     0].count() == 0):  # 如果三个属性都是空
+        if(len(user_message_list) == 0):
             print('三个属性都是None')
             menus = Menu.objects.all()
         else:  # 如果体质 病理 职业都为空
             # 等概率推荐,随机从非空的病,体质,职业中抽取一个
-            random_message = user_message_list[np.random.randint(len(user_message_list))]
+            print('user message list',user_message_list)
+            random_flag =  np.random.randint(len(user_message_list))
+            random_message = user_message_list[random_flag]
+
+            print('random message',random_flag,random_message,type(random_message))
+
             if type(random_message) is type(Physique.objects.all()[0]):
                 # Physique
                 materials = random_message.cure_material.all()
@@ -119,7 +129,6 @@ class MenuViewSet(viewsets.ReadOnlyModelViewSet):
     def get_menus_by_elements(self, request):
         """
         返回营养元素为0-elements 范围的菜谱
-        暂时仅仅用到calorie,fat,protein,
         :param request:
         :return:
         """
@@ -145,9 +154,6 @@ class MenuViewSet(viewsets.ReadOnlyModelViewSet):
         menus = Menu.objects.raw(query_sql)
         print('log sql', query_sql)
         print('log count', len(list(menus)))
-
-
-
 
 
         serializer = MenuSerializerLighter(menus, many=True)  # 轻量级的Menu

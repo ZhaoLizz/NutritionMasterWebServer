@@ -50,7 +50,7 @@ class MenuSerializerLighter(serializers.ModelSerializer):
 
     class Meta:
         model = Menu
-        fields = ('name', 'calorie', 'elements',)
+        fields = ('name', 'calorie', 'elements','image_url')
 
 
 class FoodMaterialSerializer(serializers.ModelSerializer):
@@ -120,6 +120,7 @@ class TrickSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class HistorySerializer(serializers.ModelSerializer):
+    menu = MenuSerializerLighter(read_only=True)
     class Meta:
         model = History
         fields = '__all__'
