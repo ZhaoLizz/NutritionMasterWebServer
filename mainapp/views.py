@@ -84,25 +84,22 @@ class MenuViewSet(viewsets.ReadOnlyModelViewSet):
         username = request.GET.get('username', 'zhaolizhi')  # 通过username查询用户的病,体质,职业,默认username为zhaolizhi
         user = MyUser.objects.get(username=username)
 
-        if user.illness.all().count() is not 0: # 如果病的数量不为0
+        if user.illness.all().count() is not 0:  # 如果病的数量不为0
             user_message_list = [user.illness.all(), user.occupation_name, user.physical_name]
         else:
             user_message_list = [user.occupation_name, user.physical_name]
-            print('here',user_message_list)
+            print('here', user_message_list)
         user_message_list = [message for message in user_message_list if message is not None]  # 去除掉user信息里面None的值
 
         # if (len(user_message_list) == 0 and hasattr(user_message_list[0], 'count') and user_message_list[
         #     0].count() == 0):  # 如果三个属性都是空
-        if(len(user_message_list) == 0):
+        if (len(user_message_list) == 0):
             print('三个属性都是None')
             menus = Menu.objects.all()
         else:  # 如果体质 病理 职业都为空
             # 等概率推荐,随机从非空的病,体质,职业中抽取一个
-            print('user message list',user_message_list)
-            random_flag =  np.random.randint(len(user_message_list))
+            random_flag = np.random.randint(len(user_message_list))
             random_message = user_message_list[random_flag]
-
-            print('random message',random_flag,random_message,type(random_message))
 
             if type(random_message) is type(Physique.objects.all()[0]):
                 # Physique
@@ -155,7 +152,6 @@ class MenuViewSet(viewsets.ReadOnlyModelViewSet):
         print('log sql', query_sql)
         print('log count', len(list(menus)))
 
-
         serializer = MenuSerializerLighter(menus, many=True)  # 轻量级的Menu
         return Response(serializer.data)
 
@@ -186,6 +182,11 @@ class MenuViewSet(viewsets.ReadOnlyModelViewSet):
         for materials in food_materials:
             query_set = query_set.intersection(Menu.objects.filter(cookquantity__material__in=materials))
         print('query set', query_set)
+
+        # 如果组合菜太少
+        if query_set.count() < 10:
+            query_set = Menu.objects.filter(cookquantity__material__in=material_0)
+        
 
         if query_set.count() == 0:
             return HttpResponse(status=404)
